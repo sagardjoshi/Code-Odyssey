@@ -1,5 +1,5 @@
 /**
- * @Author: sagardjoshi
+ * @Author: Sagar Joshi
  *  Problem Statement:
  * 1. There are i interviewers and c candidates
  * 2. There are only 2 interviewers allowed for each interview
@@ -12,32 +12,29 @@ import java.util.*;
 
 
 public class InterviewScheduler {
-
-
-    public HashMap<Integer, List<List<Integer>>> findCombinations(int interviewers, int perinterview, int candidates) {
+    private final PriorityQueue<int[]> pq;
+    public  InterviewScheduler () {
+        pq = new PriorityQueue<>(Comparator.comparingInt(o -> o[2]));
+    }
+    public HashMap<Integer, List<List<Integer>>> findCombinations(int interviewers, int interview, int candidates) {
         //1. find all the combinations
         List<Integer> interviewerList = new ArrayList<>();
         for (int i = 0; i < interviewers; i++) {
             interviewerList.add(i);
         }
         List<int[]> combinations = new ArrayList<>();
-        generateCombinations(interviewerList, 0, perinterview, new ArrayList<Integer>(), combinations);
+        generateCombinations(interviewerList, 0, interview, new ArrayList<>(), combinations);
 
         //2. Put them in a map key = index of the combination and value will  be freq used.
-
-
-        PriorityQueue<int[]> pq = new PriorityQueue<>(new Comparator<int[]>() {
-            @Override
-            public int compare(int[] o1, int[] o2) {
-                return Integer.compare(o1[2], o2[2]);
-            }
-        });
-
         for (int[] c : combinations) {
             pq.offer(new int[]{c[0], c[1], 0});
         }
 
         //3. Iterate through these candidates.
+        return allocateInterviewers(interviewers, candidates);
+    }
+
+    private HashMap<Integer, List<List<Integer>>> allocateInterviewers(int interviewers, int candidates) {
         HashMap<Integer, HashSet<Integer>> candidateMap = new HashMap<>();
         HashMap<Integer, List<List<Integer>>> answer = new HashMap<>();
         for (int i = 0; i < candidates; i++) {
@@ -73,7 +70,6 @@ public class InterviewScheduler {
         }
         return answer;
     }
-
     private void generateCombinations(List<Integer> interviewers, int index, int n, List<Integer> currentList, List<int[]> combinations) {
         //Generates combinations
         if (currentList.size() == n) {
