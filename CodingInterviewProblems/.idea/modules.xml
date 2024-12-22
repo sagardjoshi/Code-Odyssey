@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/CodingInterviewProblems.iml" filepath="$PROJECT_DIR$/CodingInterviewProblems.iml" />
+      <module fileurl="file://$PROJECT_DIR$/InterviewScheduler/InterviewScheduler.iml" filepath="$PROJECT_DIR$/InterviewScheduler/InterviewScheduler.iml" />
+    </modules>
+  </component>
+</project>
