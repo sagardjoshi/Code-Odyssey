@@ -1,14 +1,11 @@
-/*
+/**
+ * @Author: sagardjoshi
  *  Problem Statement:
  * 1. There are i interviewers and c candidates
  * 2. There are only 2 interviewers allowed for each interview
  * 3. All interviewers must interview the candidate only once
  * 4. The same interview pair should not repeat immediately for the next candidate
- *
- *
- *
- *
- *
+ * 5. The interview pair can can repeat after all other options are exhausted
  * */
 
 import java.util.*;
