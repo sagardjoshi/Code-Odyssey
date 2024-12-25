@@ -28,3 +28,25 @@ ext {
 application {
     mainClass.set(javaMainClass)
 }
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src/test/java'] // Define where test Java files are located
+        }
+    }
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0' // For JUnit 5
+}
+
+tasks.test {
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform() // Necessary for JUnit 5
+}

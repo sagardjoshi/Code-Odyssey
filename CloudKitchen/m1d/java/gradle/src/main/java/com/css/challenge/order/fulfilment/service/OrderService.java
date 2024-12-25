@@ -1,6 +1,7 @@
 package com.css.challenge.order.fulfilment.service;
 
 import com.css.challenge.client.Order;
+import com.css.challenge.configuration.AppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +18,9 @@ public class OrderService {
     private final AtomicInteger placedCount;
     private final OrderFulfilmentService orderFulfilmentService;
     private final ScheduledExecutorService placeScheduler = Executors.newScheduledThreadPool(1);
-    private final ScheduledExecutorService pickUpScheduler = Executors.newScheduledThreadPool(10);
+    private final ScheduledExecutorService pickUpScheduler;
     private final CountDownLatch completionLatch;
+    private final AppConfig appConfig;
 
 
     public OrderService(long rate, long min, long max, List<Order> orderList, OrderFulfilmentService orderFulfilmentService) {
@@ -29,6 +31,11 @@ public class OrderService {
         this.placedCount = new AtomicInteger(0);
         this.orderFulfilmentService = orderFulfilmentService;
         this.completionLatch = new CountDownLatch(orderList.size());
+        this.appConfig = AppConfig.getInstance();
+        String tpSize = appConfig.getProperty("thread.pool.size");
+        int threadPoolSize = tpSize != null ? Integer.parseInt(tpSize) : 10;
+        this.pickUpScheduler = Executors.newScheduledThreadPool(threadPoolSize);
+
     }
 
     public void startProcessing() {

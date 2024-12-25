@@ -25,10 +25,10 @@ public class OrderFulfilmentService {
     private final Map<String, String> orderShelfMapping;
     private final List<Action> actionLog;
 
-    public OrderFulfilmentService() {
-        hotShelf = new Shelf(6, Temperature.HOT);
-        coldShelf = new Shelf(6, Temperature.COLD);
-        roomShelf = new Shelf(12, Temperature.ROOM);
+    public OrderFulfilmentService(int hotsize, int coldsize, int roomsize) {
+        hotShelf = new Shelf(hotsize, Temperature.HOT);
+        coldShelf = new Shelf(coldsize, Temperature.COLD);
+        roomShelf = new Shelf(roomsize, Temperature.ROOM);
         orderShelfMapping = new HashMap<>();
         actionLog = new ArrayList<>();
     }

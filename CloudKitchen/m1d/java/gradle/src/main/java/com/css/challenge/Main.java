@@ -38,13 +38,22 @@ public class Main implements Runnable {
   long seed = 0;
 
   @Option(names = "--rate", description = "Inverse order rate")
-  Duration rate = Duration.ofMillis(400);
+  Duration rate = Duration.ofMillis(500);
 
   @Option(names = "--min", description = "Minimum pickup time")
-  Duration min = Duration.ofSeconds(5);
+  Duration min = Duration.ofSeconds(4);
 
   @Option(names = "--max", description = "Maximum pickup time")
   Duration max = Duration.ofSeconds(8);
+
+  @Option(names = "--hotcapacity", description = "Hot Shelf Capacity")
+  int hotcapacity = 6;
+
+  @Option(names = "--coldcapacity", description = "Cold Shelf Capacity")
+  int coldcapacity = 6;
+
+  @Option(names = "--roomcapacity", description = "Room Shelf Capacity")
+  int roomcapacity = 12;
 
   @Override
   public void run() {
@@ -53,7 +62,7 @@ public class Main implements Runnable {
       Problem problem = client.newProblem(name, seed);
 
       // ------ Simulation harness logic goes here using rate, min and max ----
-      OrderFulfilmentService orderFulfilmentService = new OrderFulfilmentService();
+      OrderFulfilmentService orderFulfilmentService = new OrderFulfilmentService(hotcapacity, coldcapacity, roomcapacity);
       OrderService orderService = new OrderService(rate.toMillis(), min.toMillis(), max.toMillis(), problem.getOrders(), orderFulfilmentService);
       orderService.startProcessing();
       orderService.waitForCompletion();
