@@ -17,21 +17,41 @@ public class OrderServiceTest {
     private final Client client = new Client("https://api.cloudkitchens.com", "9znboe4344k7");
     
     public void testSlowKitchen() {
-        LOGGER.info("testSlowKitchen");
-        processOrders(Duration.ofMillis(300), Duration.ofSeconds(3), Duration.ofSeconds(8));
+        int roomcapacity = 12;
+        int coldcapacity = 6;
+        int hotcapacity = 6;
+        LOGGER.info("testSlowKitchen hot {}  cold {} room {} ", hotcapacity, coldcapacity, roomcapacity);
+        processOrders(Duration.ofMillis(300), Duration.ofSeconds(3), Duration.ofSeconds(8), hotcapacity, coldcapacity, roomcapacity);
     }
 
     public void testFastKitchen() {
-        LOGGER.info("testFastKitchen");
-        processOrders(Duration.ofMillis(600), Duration.ofSeconds(2), Duration.ofSeconds(5));
+        int roomcapacity = 12;
+        int coldcapacity = 6;
+        int hotcapacity = 6;
+        LOGGER.info("testFastKitchen hot {}  cold {} room {} ", hotcapacity, coldcapacity, roomcapacity);
+        processOrders(Duration.ofMillis(600), Duration.ofSeconds(2), Duration.ofSeconds(5), hotcapacity, coldcapacity, roomcapacity);
+    }
+
+    public void testHighCapacityShelves() {
+        int roomcapacity = 16;
+        int coldcapacity = 8;
+        int hotcapacity = 8;
+        LOGGER.info("testHighCapacityShelves hot {}  cold {} room {} ", hotcapacity, coldcapacity, roomcapacity);
+        processOrders(Duration.ofMillis(300), Duration.ofSeconds(2), Duration.ofSeconds(6), hotcapacity, coldcapacity, roomcapacity);
+    }
+
+    public void testLowCapacityShelves() {
+        int roomcapacity = 8;
+        int coldcapacity = 4;
+        int hotcapacity = 4;
+        LOGGER.info("testLowCapacityShelves hot {}  cold {} room {} ", hotcapacity, coldcapacity, roomcapacity);
+        processOrders(Duration.ofMillis(500), Duration.ofSeconds(2), Duration.ofSeconds(6), hotcapacity, coldcapacity, roomcapacity);
     }
     
-    private void processOrders(Duration rate, Duration min, Duration max) {
+    private void processOrders(Duration rate, Duration min, Duration max, int hotcapacity, int coldcapacity, int roomcapacity) {
         try {
             Problem problem = client.newProblem("", 0);
-            int roomcapacity = 12;
-            int coldcapacity = 6;
-            int hotcapacity = 6;
+
             LOGGER.info("Inverse Order Rate {} Pickup interval between {} and {}", rate, min, max);
             OrderFulfilmentService orderFulfilmentService = new OrderFulfilmentService(hotcapacity, coldcapacity, roomcapacity);
             OrderService orderService = new OrderService(rate.toMillis(), min.toMillis(), max.toMillis(), problem.getOrders(), orderFulfilmentService);
@@ -52,5 +72,7 @@ public class OrderServiceTest {
         OrderServiceTest orderServiceTest = new OrderServiceTest();
         orderServiceTest.testSlowKitchen();
         orderServiceTest.testFastKitchen();
+        orderServiceTest.testHighCapacityShelves();
+        orderServiceTest.testLowCapacityShelves();
     }
 }

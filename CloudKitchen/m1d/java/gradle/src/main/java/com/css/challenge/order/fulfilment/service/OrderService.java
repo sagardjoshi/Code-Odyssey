@@ -20,7 +20,6 @@ public class OrderService {
     private final ScheduledExecutorService placeScheduler = Executors.newScheduledThreadPool(1);
     private final ScheduledExecutorService pickUpScheduler;
     private final CountDownLatch completionLatch;
-    private final AppConfig appConfig;
 
 
     public OrderService(long rate, long min, long max, List<Order> orderList, OrderFulfilmentService orderFulfilmentService) {
@@ -31,7 +30,7 @@ public class OrderService {
         this.placedCount = new AtomicInteger(0);
         this.orderFulfilmentService = orderFulfilmentService;
         this.completionLatch = new CountDownLatch(orderList.size());
-        this.appConfig = AppConfig.getInstance();
+        AppConfig appConfig = AppConfig.getInstance();
         String tpSize = appConfig.getProperty("thread.pool.size");
         int threadPoolSize = tpSize != null ? Integer.parseInt(tpSize) : 10;
         this.pickUpScheduler = Executors.newScheduledThreadPool(threadPoolSize);

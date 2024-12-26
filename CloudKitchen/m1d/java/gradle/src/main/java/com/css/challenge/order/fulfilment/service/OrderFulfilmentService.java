@@ -11,9 +11,10 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class OrderFulfilmentService {
@@ -23,14 +24,14 @@ public class OrderFulfilmentService {
     private final Shelf roomShelf;
 
     private final ConcurrentHashMap<String, String> orderShelfMapping;
-    private final ConcurrentLinkedQueue<Action> actionLog;
+    private final PriorityQueue<Action> actionLog;
 
     public OrderFulfilmentService(int hotsize, int coldsize, int roomsize) {
         hotShelf = new Shelf(hotsize, Temperature.HOT);
         coldShelf = new Shelf(coldsize, Temperature.COLD);
         roomShelf = new Shelf(roomsize, Temperature.ROOM);
         orderShelfMapping = new ConcurrentHashMap<>();
-        actionLog = new ConcurrentLinkedQueue<>();
+        actionLog = new PriorityQueue<>(Comparator.comparingLong(Action::getTimestamp));
     }
 
     public void placeOrder(Order order) {
@@ -45,7 +46,7 @@ public class OrderFulfilmentService {
                 placeRoomOrder(order);
                 break;
             default:
-                LOGGER.error("Invalid temperature {} for order {}", order.getTemp(), order.getId());
+                LOGGER.error("placeOrder - Invalid temperature {} for order {}", order.getTemp(), order.getId());
 
         }
     }
@@ -57,7 +58,7 @@ public class OrderFulfilmentService {
         if (roomShelf.put(orderId, order)) {
             // Successfully placed on the room shelf
             orderShelfMapping.put(orderId, Temperature.ROOM);
-            actionLog.add(new Action(Instant.now(), orderId, Action.PLACE));
+            addToActionLog(new Action(Instant.now(), orderId, Action.PLACE));
             return;
         }
 
@@ -72,7 +73,7 @@ public class OrderFulfilmentService {
                 // Place the new order on the room shelf after creating space
                 roomShelf.put(orderId, order);
                 orderShelfMapping.put(orderId, Temperature.ROOM);
-                actionLog.add(new Action(Instant.now(), orderId, Action.PLACE));
+                addToActionLog(new Action(Instant.now(), orderId, Action.PLACE));
             } else {
                 // If unable to move the eligible order, evict an order and place the new one
                 evictAndPlace(order);
@@ -101,7 +102,7 @@ public class OrderFulfilmentService {
         fromShelf.remove(orderId);
         toShelf.put(orderId, order);
         orderShelfMapping.put(orderId, newTemp);
-        actionLog.add(new Action(Instant.now(), orderId, Action.MOVE));
+        addToActionLog(new Action(Instant.now(), orderId, Action.MOVE));
     }
 
     private void evictAndPlace(Order order) {
@@ -110,11 +111,11 @@ public class OrderFulfilmentService {
         String evictedOrderId = roomShelf.evictStaleOrder();
         if(!evictedOrderId.isEmpty()) {
             orderShelfMapping.remove(evictedOrderId);
-            actionLog.add(new Action(Instant.now(), evictedOrderId, Action.DISCARD));
+            addToActionLog(new Action(Instant.now(), evictedOrderId, Action.DISCARD));
 
             roomShelf.put(orderId, order);
             orderShelfMapping.put(orderId, Temperature.ROOM);
-            actionLog.add(new Action(Instant.now(), orderId, Action.PLACE));
+            addToActionLog(new Action(Instant.now(), orderId, Action.PLACE));
         }
     }
 
@@ -127,7 +128,7 @@ public class OrderFulfilmentService {
             placeRoomOrder(order);
         } else {
             orderShelfMapping.put(orderId, order.getTemp());
-            actionLog.add(new Action(Instant.now(), orderId, Action.PLACE));
+            addToActionLog(new Action(Instant.now(), orderId, Action.PLACE));
         }
     }
 
@@ -139,27 +140,37 @@ public class OrderFulfilmentService {
         String temperature = orderShelfMapping.get(orderId);
         boolean pickUpStatus;
         switch (temperature) {
-            case Temperature.COLD -> {
-                pickUpStatus = coldShelf.remove(orderId);
-            }
-            case Temperature.HOT -> {
-                pickUpStatus= hotShelf.remove(orderId);
-            }
-            case Temperature.ROOM -> {
-                pickUpStatus = roomShelf.remove(orderId);
-            }
+            case Temperature.COLD -> pickUpStatus = coldShelf.remove(orderId);
+            case Temperature.HOT -> pickUpStatus= hotShelf.remove(orderId);
+            case Temperature.ROOM -> pickUpStatus = roomShelf.remove(orderId);
             default -> {
-                LOGGER.error("Invalid temperature {}  for order {}", temperature, orderId);
+                LOGGER.error("pickOrder Invalid temperature {}  for order {}", temperature, orderId);
                 return;
             }
         }
         if(pickUpStatus) {
-            actionLog.add(new Action(Instant.now(), orderId, Action.PICKUP));
+            addToActionLog(new Action(Instant.now(), orderId, Action.PICKUP));
             orderShelfMapping.remove(orderId);
         }
     }
 
-    public List<Action> getActionLog() {
+    private synchronized void addToActionLog(Action action) {
+         actionLog.offer(action);
+    }
+
+    public synchronized  List<Action> getActionLog() {
         return new ArrayList<>(actionLog);
+    }
+
+    public Shelf getHotShelf() {
+        return hotShelf;
+    }
+
+    public Shelf getColdShelf() {
+        return coldShelf;
+    }
+
+    public Shelf getRoomShelf() {
+        return roomShelf;
     }
 }

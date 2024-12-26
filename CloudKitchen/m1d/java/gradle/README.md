@@ -41,16 +41,16 @@ Represents a shelf with limited capacity and handles storage/retrieval of orders
 ---
 ### Logic for Order Movement and Order Discard
 - If ideal shelf for the order is full then following logic is used to adjust this new order
-  - Check if Room Shelf has space.
-    - true - place the order in Room shelf and return
-    - false - Refer to point 2
-  - Check for count of hot+cold orders in Room Shelf
-    - true - Count is non-zero refer to point 3
-    - false - Return
-  - Get the least fresh cold / hot order compared to current system time in the Room Shelf
-    - Move the eligible order from Room shelf to respective cold/hot shelf and return. Set the action log to MOVE for that order
-    - Get for the least fresh order with respect to current system time
-    - Discard the order and set the action log for that order to DISCARD
+  1. Check if Room Shelf has space.
+     - true - place the order in Room shelf and return
+     - false - Refer to point ii
+  2. Check for count of hot+cold orders in Room Shelf
+     - true - Count is non-zero refer to point iii
+     - false - Go to Point iv
+  3. Get the least fresh cold / hot order compared to current system time in the Room Shelf
+     - Move the eligible order from Room shelf to respective cold/hot shelf and return. Set the action log to MOVE for that order
+  4. Get for the least fresh order with respect to current system time
+     - Discard the order and set the action log for that order to DISCARD
 
 ---
 
@@ -77,21 +77,53 @@ Command-Line Options
 
 ## Testing
 #### Faster Kitchen vs Slower PickUp ()
+- Roomcapacity = 12;
+- Coldcapacity = 6;
+- Hotcapacity = 6;
 - Inverse Order Rate - 300ms
 - Min - 3s
 - Max - 8s
-
- ./gradlew run --args='--endpoint=https://api.cloudkitchens.com --auth=9znboe4344k7 --rate=PT0.3S --min=PT3S --max=PT8S'
+  - ./gradlew run --args='--endpoint=https://api.cloudkitchens.com --auth=9znboe4344k7 --rate=PT0.3S --min=PT3S --max=PT8S'
 
 Result: Orders get moved to room shelf due to lack of space on hot and cold.
+**Refer to OrderServiceTest.java:testFastKitchen**
 
 #### Slower Kitchen vs Faster Pickup (Slow Kitchen)
+- Roomcapacity = 12;
+- Coldcapacity = 6;
+- Hotcapacity = 6;
 - Inverse Order Rate - 600ms
 - Min - 2s
 - Max - 5s
-  ./gradlew run --args='--endpoint=https://api.cloudkitchens.com --auth=9znboe4344k7 --rate=PT0.6S --min=PT2S --max=PT5S'
+  - ./gradlew run --args='--endpoint=https://api.cloudkitchens.com --auth=9znboe4344k7 --rate=PT0.6S --min=PT2S --max=PT5S'
 
 Result: Pick up threads remain due to slow placing of orders on shelf.
+**Refer to OrderServiceTest.java:testSlowKitchen**
+
+#### High Capacity vs Slower Pickup
+- Roomcapacity = 16;
+- Coldcapacity = 8;
+- Hotcapacity = 8;
+- Inverse Order Rate - 300ms
+- Min - 2s
+- Max - 6s
+  - ./gradlew run --args='--endpoint=https://api.cloudkitchens.com --auth=9znboe4344k7 --rate=PT0.3S --min=PT2S --max=PT6S'
+
+Result: Pick up threads remain due to slow placing of orders on shelf.
+**Refer to OrderServiceTest.java:testSlowKitchen**
+
+
+#### Lower Capacity vs Faster Pickup
+- Roomcapacity = 8;
+- Coldcapacity = 4;
+- Hotcapacity = 4;
+- Inverse Order Rate - 500ms
+- Min - 2s
+- Max - 6s
+  - ./gradlew run --args='--endpoint=https://api.cloudkitchens.com --auth=9znboe4344k7 --rate=PT0.5S --min=PT2S --max=PT6S'
+
+Result: Pick up threads remain due to slow placing of orders on shelf.
+**Refer to OrderServiceTest.java:testSlowKitchen**
 
 ## Logging
 Logging
@@ -106,7 +138,7 @@ You can adjust the logging level by modifying the configuration in Main.java.
 
 ## Future Improvements
 ```
-Add unit and integration tests for all services.
+Adding a logs to a file for future reference
 Implement metrics collection for performance monitoring.
 Enhance error handling and retries for API calls.
 ```
