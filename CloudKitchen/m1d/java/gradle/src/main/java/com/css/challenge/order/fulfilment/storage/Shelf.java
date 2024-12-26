@@ -9,9 +9,11 @@ import java.util.*;
 public class Shelf {
     private static final Logger LOGGER = LoggerFactory.getLogger(Shelf.class);
     private final HashMap<String, OrderWithTime> shelfMap;
+    // Maintains a mapping between the order expiry time and orderId for faster eviction
     private final TreeMap<Long, String> orderSequenceMap;
     private final String shelfType;
     private final int capacity;
+    // Used in case of Room Shelf to hold orderIds of hot and cold orders
     private final TreeMap<Long,String> nonIdealMap;
 
     private record OrderWithTime(Order order, Long timestamp) {

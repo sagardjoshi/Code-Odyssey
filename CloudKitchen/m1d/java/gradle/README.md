@@ -1,6 +1,12 @@
 # README
 
 ---
+## Overview
+
+The **Order Fulfillment Simulation Service** is a Java-based solution designed to simulate an order placement and fulfillment system for a food delivery scenario. This system handles orders by placing them on designated shelves based on temperature requirements (HOT, COLD, or ROOM) and ensures efficient processing, from placement to pickup, within specified time constraints.
+
+This project demonstrates the use of multithreading, distributed systems design, and real-time order processing in a structured and scalable manner.
+
 
 ## Key Components
 
@@ -69,6 +75,24 @@ Command-Line Options
 --roomcapacity: Room Shelf capacity (optional default: 12)
 ```
 
+## Testing
+#### Faster Kitchen vs Slower PickUp ()
+- Inverse Order Rate - 300ms
+- Min - 3s
+- Max - 8s
+
+ ./gradlew run --args='--endpoint=https://api.cloudkitchens.com --auth=9znboe4344k7 --rate=PT0.3S --min=PT3S --max=PT8S'
+
+Result: Orders get moved to room shelf due to lack of space on hot and cold.
+
+#### Slower Kitchen vs Faster Pickup (Slow Kitchen)
+- Inverse Order Rate - 600ms
+- Min - 2s
+- Max - 5s
+  ./gradlew run --args='--endpoint=https://api.cloudkitchens.com --auth=9znboe4344k7 --rate=PT0.6S --min=PT2S --max=PT5S'
+
+Result: Pick up threads remain due to slow placing of orders on shelf.
+
 ## Logging
 Logging
 The solution uses SLF4J for logging:
@@ -78,6 +102,7 @@ DEBUG: Detailed logs for order placement and pickup delays.
 WARN: Alerts for evictions or invalid operations.
 You can adjust the logging level by modifying the configuration in Main.java.
 ```
+
 
 ## Future Improvements
 ```

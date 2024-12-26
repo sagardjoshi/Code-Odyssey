@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class OrderFulfilmentService {
@@ -22,15 +22,15 @@ public class OrderFulfilmentService {
     private final Shelf coldShelf;
     private final Shelf roomShelf;
 
-    private final Map<String, String> orderShelfMapping;
-    private final List<Action> actionLog;
+    private final ConcurrentHashMap<String, String> orderShelfMapping;
+    private final ConcurrentLinkedQueue<Action> actionLog;
 
     public OrderFulfilmentService(int hotsize, int coldsize, int roomsize) {
         hotShelf = new Shelf(hotsize, Temperature.HOT);
         coldShelf = new Shelf(coldsize, Temperature.COLD);
         roomShelf = new Shelf(roomsize, Temperature.ROOM);
-        orderShelfMapping = new HashMap<>();
-        actionLog = new ArrayList<>();
+        orderShelfMapping = new ConcurrentHashMap<>();
+        actionLog = new ConcurrentLinkedQueue<>();
     }
 
     public void placeOrder(Order order) {
@@ -45,7 +45,7 @@ public class OrderFulfilmentService {
                 placeRoomOrder(order);
                 break;
             default:
-                throw new RuntimeException("Invalid temperature");
+                LOGGER.error("Invalid temperature {} for order {}", order.getTemp(), order.getId());
 
         }
     }
@@ -148,7 +148,10 @@ public class OrderFulfilmentService {
             case Temperature.ROOM -> {
                 pickUpStatus = roomShelf.remove(orderId);
             }
-            default -> throw new RuntimeException("Invalid temperature");
+            default -> {
+                LOGGER.error("Invalid temperature {}  for order {}", temperature, orderId);
+                return;
+            }
         }
         if(pickUpStatus) {
             actionLog.add(new Action(Instant.now(), orderId, Action.PICKUP));
@@ -157,6 +160,6 @@ public class OrderFulfilmentService {
     }
 
     public List<Action> getActionLog() {
-        return actionLog;
+        return new ArrayList<>(actionLog);
     }
 }
